@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Algoritmo do Banqueiro</title>
+    </head>
+
+    <body>
+        <script type="text/javascript">
+            let available = [3, 3, 2];
+
+            let allocation = [
+                [0, 1, 0],
+                [2, 0, 0],
+                [3, 0, 2],
+                [2, 1, 1],
+                [0, 0, 2]
+            ];
+
+            let max = [
+                [7, 5, 3],
+                [3, 2, 2],
+                [9, 0, 2],
+                [2, 2, 2],
+                [4, 3, 3]
+            ];
+
+            function getNeedMatrix(maxMatrix, allocationMatrix) {
+                let need = [];
+
+                for (let i = 0; i < max.length; i++) {
+                    need[i] = [];
+
+                    for (let j = 0; j < max[i].length; j++) {
+                        need[i][j] = max[i][j] - allocation[i][j];
+                    }
+                }
+
+                return need;
+            }
+
+            function isSafeToExecute(needRow, available) {
+                // console.log(`recursos necessários: ${needRow}`);
+                for (let i = 0; i < needRow.length; i++) {
+                    if (needRow[i] > available[i]) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            function executeBankerAlgorithm() {
+                let availableResources = [...available];
+                let currentAllocation = [...allocation];
+                let maxAllocation = max.map(row => [...row]);
+                let need = getNeedMatrix(maxAllocation, currentAllocation);
+
+                let finished = new Array(maxAllocation.length).fill(false);
+                let remainingProcesses = finished.length;
+                let iterationIndex = 0;
+                let processExecutedInCycle = false;
+
+                let executionOrder = [];
+
+                let metrics = {
+                    accepted: 0,
+                    denied: 0,
+                    iterations: 0,
+                }
+                
+                console.log('Início da execução do algoritmo do banqueiro: ')
+                console.log('\nMatriz Need: ')
+                console.table(need);
+                console.log('\n')
+
+                while (remainingProcesses > 0) {
+                    if (!finished[iterationIndex]) {
+                        if (isSafeToExecute(need[iterationIndex], availableResources)) {
+                            console.log(`P${iterationIndex} executado`);
+
+                            for (let j = 0; j < availableResources.length; j++) {
+                                availableResources[j] += currentAllocation[iterationIndex][j];
+                                currentAllocation[iterationIndex][j] = 0;
+                                need[iterationIndex][j] = 0;
+                            }
+
+                            finished[iterationIndex] = true;
+                            metrics.accepted++;
+                            executionOrder.push(`P${iterationIndex}`);
+                            remainingProcesses--;
+
+                            console.log(`Recursos disponíveis após execução de P${iterationIndex}: [${availableResources.join(", ")}]\n`);
+
+                            processExecutedInCycle = true;
+                            
+                            // Seta indice como -1 para reiniciar a verificação
+                            iterationIndex = -1;
+                        } else {
+                            console.log(`Falha na execução de P${iterationIndex}`);
+                            console.log(`Need de P${iterationIndex}: [${need[iterationIndex].join(", ")}]`);
+                            console.log(`Recursos disponíveis: [${availableResources.join(", ")}]\n`);
+                            metrics.denied++;
+                        }
+
+                        metrics.iterations++;
+                    }
+
+                    iterationIndex++;
+
+                    if (iterationIndex >= finished.length) {
+                        // Se percorreu todos os processos e nenhum executar = deadlock
+                        if (!processExecutedInCycle) {
+                            console.log("%cDEADLOCK: Recursos insuficientes", "color: red; font-weight: bold; font-size: 12px;");
+                            console.log("Estado dos processos:");
+                            console.log(finished);
+                            console.log("Ordem segura PARCIAL de execução: " + executionOrder.join(" > "));
+                            console.log(`Recursos disponíveis no fim do deadlock [${availableResources.join(", ")}]`);
+
+                            return;
+                        }
+                        
+                        // Do contrário percorremos os processos novamente
+                        processExecutedInCycle = false;
+                        iterationIndex = 0;
+                    }
+                }
+
+                console.log("%cSucesso - Fim da execução", "color: #0f0; font-weight: bold; font-size: 12px;");
+                console.log(`Ordem segura de execução: ${executionOrder.join(" > ")}`);
+                console.log("Métricas:");
+                console.log(`Execuções aprovadas: ${metrics.accepted}`);
+                console.log(`Execuções negadas: ${metrics.denied}`);
+                console.log(`Iterações totais da fila: ${metrics.iterations}`);
+            }
+
+            executeBankerAlgorithm();
+        </script>
+    </body>
+</html>
