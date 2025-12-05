@@ -7,8 +7,6 @@
     </head>
 
     <body>
-        <h1>Algoritmo do Banqueiro</h1>
-        <button type="button" onClick="executeBankerAlgorithm()">Rodar simulação</button>
         <script type="text/javascript">
             let available = [3, 3, 2];
 
@@ -136,6 +134,8 @@
                 console.log(`Execuções negadas: ${metrics.denied}`);
                 console.log(`Iterações totais da fila: ${metrics.iterations}`);
             }
+
+            executeBankerAlgorithm();
         </script>
     </body>
 </html>
